@@ -1,12 +1,7 @@
 package com.example.demo.service.impl;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletResponse;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,20 +46,10 @@ public class ApplicantServiceImpl implements ApplicantService {
     }
 
     @Override
-    public ApplicantPDFExporter exportToPdf(HttpServletResponse response) {
+    public byte[] exportToPdf() {
 
-        response.setContentType("application/pdf");
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-        String currentDateTime = dateFormatter.format(new Date());
-
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=users_" + currentDateTime + ".pdf";
-        response.setHeader(headerKey, headerValue);
-
-        ApplicantPDFExporter exporter = new ApplicantPDFExporter(
-                this.getApplicants().stream().map(applicantMapper::toEntity).collect(Collectors.toList()));
-
-        return exporter;
+        return ApplicantPDFExporter
+                .export(this.getApplicants().stream().map(applicantMapper::toEntity).collect(Collectors.toList()));
     }
 
 }
