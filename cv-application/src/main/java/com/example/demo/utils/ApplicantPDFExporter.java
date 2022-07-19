@@ -2,13 +2,24 @@ package com.example.demo.utils;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+
 import com.example.demo.entity.Applicant;
+import com.example.demo.service.dto.GithubInformationDto;
+import com.google.gson.Gson;
+import com.lowagie.text.BadElementException;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.Font;
 import com.lowagie.text.FontFactory;
+import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Phrase;
@@ -18,67 +29,89 @@ import com.lowagie.text.pdf.PdfWriter;
 
 public class ApplicantPDFExporter {
 
-    private static Font getFont(boolean isBold) {
-        return FontFactory.getFont(isBold ? FontFactory.TIMES_BOLD : FontFactory.TIMES_ROMAN);
-    }
+	private final static RestTemplate restTemplate = new RestTemplate();
 
-    private static void writeTableHeader(PdfPTable table) {
-        PdfPCell cell = new PdfPCell();
-        cell.setPadding(5);
+	private static Font getFont(boolean isBold) {
+		return FontFactory.getFont(isBold ? FontFactory.TIMES_BOLD : FontFactory.TIMES_ROMAN);
+	}
 
-        Font font = getFont(true);
+	private static GithubInformationDto getGithubInformation(String userName) throws IOException {
+		ResponseEntity<String> response = restTemplate.exchange("https://api.github.com/search/users?q=" + userName,
+				HttpMethod.GET, null, String.class);
+		Gson gson = new Gson();
+		return gson.fromJson(response.getBody(), GithubInformationDto.class);
+	}
 
-        font.setColor(Color.BLACK);
+	private static void writeTableHeader(PdfPTable table) {
+		PdfPCell cell = new PdfPCell();
+		cell.setPadding(5);
 
-        cell.setPhrase(new Phrase("Email", font));
-        table.addCell(cell);
+		Font font = getFont(true);
 
-        cell.setPhrase(new Phrase("Github", font));
-        table.addCell(cell);
-    }
+		font.setColor(Color.BLACK);
 
-    private static void writeTableData(PdfPTable table, List<Applicant> applicants) {
-        Font font = getFont(false);
-        PdfPCell cell = new PdfPCell();
-        cell.setPadding(5);
+		cell.setPhrase(new Phrase("Avatar", font));
+		table.addCell(cell);
 
-        for (Applicant applicant : applicants) {
-            cell.setPhrase(new Phrase(applicant.getEmail(), font));
-            table.addCell(cell);
-            cell.setPhrase(new Phrase(applicant.getGithub(), font));
-            table.addCell(cell);
-        }
-    }
+		cell.setPhrase(new Phrase("Email", font));
+		table.addCell(cell);
 
-    public static byte[] export(List<Applicant> applicants) throws DocumentException {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+		cell.setPhrase(new Phrase("Github", font));
+		table.addCell(cell);
+	}
 
-        Document document = new Document(PageSize.A4);
-        PdfWriter.getInstance(document, byteArrayOutputStream);
+	private static void writeTableData(PdfPTable table, List<Applicant> applicants)
+			throws BadElementException, MalformedURLException, IOException {
+		Font font = getFont(false);
+		PdfPCell cell = new PdfPCell();
+		cell.setPadding(5);
 
-        Font font = getFont(true);
+		for (Applicant applicant : applicants) {
+			GithubInformationDto github = getGithubInformation(applicant.getGithub());
 
-        document.open();
-        font.setSize(18);
-        font.setColor(Color.BLACK);
+			String url = github.getItems().isEmpty() ? "https://cdn-icons-png.flaticon.com/512/25/25231.png?w=360"
+					: github.getItems().get(0).getAvatarUrl();
 
-        Paragraph p = new Paragraph("List of Applicant", font);
-        p.setAlignment(Paragraph.ALIGN_CENTER);
+			Image img = Image.getInstance(new URL(url));
+			cell.setImage(img);
+			table.addCell(cell);
+			cell.setPhrase(new Phrase(applicant.getEmail(), font));
+			table.addCell(cell);
+			cell.setPhrase(new Phrase(applicant.getGithub(), font));
+			table.addCell(cell);
+		}
+	}
 
-        document.add(p);
+	public static byte[] export(List<Applicant> applicants)
+			throws DocumentException, MalformedURLException, IOException {
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 
-        PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100f);
-        table.setWidths(new float[] { 5f, 5f });
-        table.setSpacingBefore(10);
+		Document document = new Document(PageSize.A4);
+		PdfWriter.getInstance(document, byteArrayOutputStream);
 
-        writeTableHeader(table);
-        writeTableData(table, applicants);
+		Font font = getFont(true);
 
-        document.add(table);
+		document.open();
+		font.setSize(18);
+		font.setColor(Color.BLACK);
 
-        document.close();
+		Paragraph p = new Paragraph("List of Applicant", font);
+		p.setAlignment(Paragraph.ALIGN_CENTER);
 
-        return byteArrayOutputStream.toByteArray();
-    }
+		document.add(p);
+
+		PdfPTable table = new PdfPTable(3);
+		table.setWidthPercentage(100f);
+		table.setWidths(new float[] { 2f, 4f, 4f });
+		table.setSpacingBefore(10);
+
+		writeTableHeader(table);
+		writeTableData(table, applicants);
+
+		document.add(table);
+
+		document.close();
+
+		return byteArrayOutputStream.toByteArray();
+	}
 }

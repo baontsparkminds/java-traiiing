@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,30 +29,30 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApplicantController {
 
-    private final ApplicantService applicantService;
+	private final ApplicantService applicantService;
 
-    @GetMapping("")
-    public ResponseEntity<List<ApplicantDto>> getApplicants() {
-        return ResponseEntity.ok(applicantService.getApplicants());
-    }
+	@GetMapping("")
+	public ResponseEntity<List<ApplicantDto>> getApplicants() {
+		return ResponseEntity.ok(applicantService.getApplicants());
+	}
 
-    @PostMapping("")
-    public ResponseEntity<ApplicantDto> addApplicant(@RequestBody ApplicantRequestDto applicantRequestDto) {
-        return ResponseEntity.ok(applicantService.addApplicant(applicantRequestDto));
-    }
+	@PostMapping("")
+	public ResponseEntity<ApplicantDto> addApplicant(@RequestBody ApplicantRequestDto applicantRequestDto) {
+		return ResponseEntity.ok(applicantService.addApplicant(applicantRequestDto));
+	}
 
-    @GetMapping("/export/pdf")
-    public ResponseEntity<?> exportToPDF() throws DocumentException {
+	@GetMapping("/export/pdf")
+	public ResponseEntity<?> exportToPDF() throws DocumentException, MalformedURLException, IOException {
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Content-type", MediaType.APPLICATION_PDF_VALUE);
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Content-type", MediaType.APPLICATION_PDF_VALUE);
 
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-        String currentDateTime = dateFormatter.format(new Date());
-        headers.set("Content-Disposition", "attachment; filename=users_" + currentDateTime + ".pdf");
+		DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+		String currentDateTime = dateFormatter.format(new Date());
+		headers.set("Content-Disposition", "attachment; filename=applicants_" + currentDateTime + ".pdf");
 
-        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(applicantService.exportToPdf());
+		return ResponseEntity.status(HttpStatus.OK).headers(headers).body(applicantService.exportToPdf());
 
-    }
+	}
 
 }
