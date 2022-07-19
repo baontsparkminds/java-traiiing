@@ -17,66 +17,67 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ApplicantPDFExporter {
-    private List<Applicant> applicants;
+	private List<Applicant> applicants;
 
-    private Font getFont(boolean isBold) {
-        return FontFactory.getFont(isBold ? FontFactory.TIMES_BOLD : FontFactory.TIMES_ROMAN);
-    }
+	private Font getFont(boolean isBold) {
+		return FontFactory.getFont(isBold ? FontFactory.TIMES_BOLD : FontFactory.TIMES_ROMAN);
+	}
 
-    private void writeTableHeader(PdfPTable table) {
-        PdfPCell cell = new PdfPCell();
-        cell.setPadding(5);
+	private void writeTableHeader(PdfPTable table) {
+		PdfPCell cell = new PdfPCell();
+		cell.setPadding(5);
 
-        Font font = getFont(true);
+		Font font = getFont(true);
 
-        font.setColor(Color.BLACK);
+		font.setColor(Color.BLACK);
 
-        cell.setPhrase(new Phrase("Email", font));
-        table.addCell(cell);
+		cell.setPhrase(new Phrase("Email", font));
+		table.addCell(cell);
 
-        cell.setPhrase(new Phrase("Github", font));
-        table.addCell(cell);
-    }
+		cell.setPhrase(new Phrase("Github", font));
+		table.addCell(cell);
+	}
 
-    private void writeTableData(PdfPTable table) {
-        Font font = getFont(false);
-        PdfPCell cell = new PdfPCell();
-        cell.setPadding(5);
+	private void writeTableData(PdfPTable table) {
+		Font font = getFont(false);
+		PdfPCell cell = new PdfPCell();
+		cell.setPadding(5);
 
-        for (Applicant applicant : applicants) {
-            cell.setPhrase(new Phrase(applicant.getEmail(), font));
-            table.addCell(cell);
-            cell.setPhrase(new Phrase(applicant.getGithub(), font));
-            table.addCell(cell);
-        }
-    }
+		for (Applicant applicant : applicants) {
+			cell.setPhrase(new Phrase(applicant.getEmail(), font));
+			table.addCell(cell);
+			cell.setPhrase(new Phrase(applicant.getGithub(), font));
+			table.addCell(cell);
+		}
+	}
 
-    public void export(HttpServletResponse response) throws DocumentException, IOException {
-        Document document = new Document(PageSize.A4);
-        PdfWriter.getInstance(document, response.getOutputStream());
+	public String export(HttpServletResponse response) throws DocumentException, IOException {
+		Document document = new Document(PageSize.A4);
+		PdfWriter.getInstance(document, response.getOutputStream());
 
-        Font font = getFont(true);
+		Font font = getFont(true);
 
-        document.open();
-        font.setSize(18);
-        font.setColor(Color.BLACK);
+		document.open();
+		font.setSize(18);
+		font.setColor(Color.BLACK);
 
-        Paragraph p = new Paragraph("List of Applicant", font);
-        p.setAlignment(Paragraph.ALIGN_CENTER);
+		Paragraph p = new Paragraph("List of Applicant", font);
+		p.setAlignment(Paragraph.ALIGN_CENTER);
 
-        document.add(p);
+		document.add(p);
 
-        PdfPTable table = new PdfPTable(2);
-        table.setWidthPercentage(100f);
-        table.setWidths(new float[] { 5f, 5f });
-        table.setSpacingBefore(10);
+		PdfPTable table = new PdfPTable(2);
+		table.setWidthPercentage(100f);
+		table.setWidths(new float[] { 5f, 5f });
+		table.setSpacingBefore(10);
 
-        writeTableHeader(table);
-        writeTableData(table);
+		writeTableHeader(table);
+		writeTableData(table);
 
-        document.add(table);
+		document.add(table);
 
-        document.close();
+		document.close();
 
-    }
+		return document.toString();
+	}
 }

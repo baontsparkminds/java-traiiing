@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,21 +25,21 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApplicantController {
 
-    private final ApplicantService applicantService;
+	private final ApplicantService applicantService;
 
-    @GetMapping("")
-    public ResponseEntity<List<ApplicantDto>> getApplicants() {
-        return ResponseEntity.ok(applicantService.getApplicants());
-    }
+	@GetMapping("")
+	public ResponseEntity<List<ApplicantDto>> getApplicants() {
+		return ResponseEntity.ok(applicantService.getApplicants());
+	}
 
-    @PostMapping("")
-    public ResponseEntity<ApplicantDto> addApplicant(@RequestBody ApplicantRequestDto applicantRequestDto) {
-        return ResponseEntity.ok(applicantService.addApplicant(applicantRequestDto));
-    }
+	@PostMapping("")
+	public ResponseEntity<ApplicantDto> addApplicant(@RequestBody ApplicantRequestDto applicantRequestDto) {
+		return ResponseEntity.ok(applicantService.addApplicant(applicantRequestDto));
+	}
 
-    @GetMapping("/export/pdf")
-    public void exportToPDF(HttpServletResponse response) throws DocumentException, IOException {
-        applicantService.exportToPdf(response).export(response);
-    }
+	@GetMapping("/export/pdf")
+	public ResponseEntity<?> exportToPDF(HttpServletResponse response) throws DocumentException, IOException {
+		return ResponseEntity.status(HttpStatus.OK).body(applicantService.exportToPdf(response).export(response));
+	}
 
 }
