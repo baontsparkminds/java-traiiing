@@ -1,11 +1,13 @@
 package com.example.demo.controller;
 
-import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,21 +27,30 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ApplicantController {
 
-	private final ApplicantService applicantService;
+    private final ApplicantService applicantService;
 
-	@GetMapping("")
-	public ResponseEntity<List<ApplicantDto>> getApplicants() {
-		return ResponseEntity.ok(applicantService.getApplicants());
-	}
+    @GetMapping("")
+    public ResponseEntity<List<ApplicantDto>> getApplicants() {
+        return ResponseEntity.ok(applicantService.getApplicants());
+    }
 
-	@PostMapping("")
-	public ResponseEntity<ApplicantDto> addApplicant(@RequestBody ApplicantRequestDto applicantRequestDto) {
-		return ResponseEntity.ok(applicantService.addApplicant(applicantRequestDto));
-	}
+    @PostMapping("")
+    public ResponseEntity<ApplicantDto> addApplicant(@RequestBody ApplicantRequestDto applicantRequestDto) {
+        return ResponseEntity.ok(applicantService.addApplicant(applicantRequestDto));
+    }
 
-	@GetMapping("/export/pdf")
-	public ResponseEntity<?> exportToPDF(HttpServletResponse response) throws DocumentException, IOException {
-		return ResponseEntity.status(HttpStatus.OK).body(applicantService.exportToPdf(response).export(response));
-	}
+    @GetMapping("/export/pdf")
+    public ResponseEntity<?> exportToPDF() throws DocumentException {
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-type", MediaType.APPLICATION_PDF_VALUE);
+
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+        headers.set("Content-Disposition", "attachment; filename=users_" + currentDateTime + ".pdf");
+
+        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(applicantService.exportToPdf());
+
+    }
 
 }
