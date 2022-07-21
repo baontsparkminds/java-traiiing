@@ -3,12 +3,14 @@ package com.example.demo.service.impl;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.entity.Applicant;
+import com.example.demo.exception.DataNotFoundException;
 import com.example.demo.repository.ApplicantRepository;
 import com.example.demo.service.ApplicantService;
 import com.example.demo.service.dto.ApplicantDto;
@@ -53,6 +55,15 @@ public class ApplicantServiceImpl implements ApplicantService {
 
         return ApplicantPDFExporter
                 .export(this.getApplicants().stream().map(applicantMapper::toEntity).collect(Collectors.toList()));
+    }
+
+    @Override
+    public ApplicantDto getApplicant(Long id) {
+        Optional<Applicant> applicant = applicantRepository.findById(id);
+        if (!applicant.isPresent()) {
+            throw new DataNotFoundException("Applicant not found.", "error.notfound");
+        }
+        return applicantMapper.toDto(applicant.get());
     }
 
 }

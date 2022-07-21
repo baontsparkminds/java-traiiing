@@ -5,4 +5,6 @@ import com.example.demo.service.dto.ProjectDto;
 
 public interface ProjectService {
     List<ProjectDto> getProjects();
+
+    ProjectDto getProject(Long id);
 }

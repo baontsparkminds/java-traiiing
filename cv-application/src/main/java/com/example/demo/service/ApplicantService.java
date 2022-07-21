@@ -15,4 +15,6 @@ public interface ApplicantService {
 	ApplicantDto addApplicant(ApplicantRequestDto applicantRequestDto);
 
 	byte[] exportToPdf() throws DocumentException, MalformedURLException, IOException;
+
+	ApplicantDto getApplicant(Long id);
 }
